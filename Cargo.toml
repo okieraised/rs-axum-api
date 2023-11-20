@@ -1,0 +1,23 @@
+[package]
+name = "axum_api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.6.20"
+hyper = "1.0.1"
+serde = { version = "1.0.192", features = ["derive"] }
+tokio = { version = "1.34.0", features = ["full"] }
+tower = "0.4.13"
+tracing-subscriber = "0.3.18"
+tracing = "0.1.40"
+jsonwebtoken = "9.1.0"
+serde_with = { version = "3.4.0"}
+reqwest = {  version = "0.11.22", features = ["multipart", "blocking", "json"]  }
+anyhow = { version = "1.0.75"}
+log = { version = "0.4.20"}
+serde_json = { version = "1.0.108"}
+diesel = { version = "2.1.4", features = ["postgres", "serde_json", "uuid", "r2d2"] }
+uuid = { version = "1.5.0", features = ["serde", "v4"] }
