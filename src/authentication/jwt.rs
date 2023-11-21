@@ -15,7 +15,7 @@ pub struct Claims {
     jti: uuid::Uuid,
 }
 
-pub fn new_jwt(subject: &str, audience: &str, role: &str) -> Result<String> {
+pub fn new_jwt(subject: &str, role: &str, aud: Vec<String>, duration: u64) -> Result<String> {
 
     let current_time_result = SystemTime::now().duration_since(UNIX_EPOCH);
     let current_time = match current_time_result {
@@ -25,14 +25,11 @@ pub fn new_jwt(subject: &str, audience: &str, role: &str) -> Result<String> {
         }
     };
 
-    let mut aud: Vec<String> = Vec::new();
-    aud.push(String::from(audience));
-
     let claim = Claims {
         sub: subject.to_owned(),
         aud: aud,
         role: role.to_owned(),
-        exp: current_time.as_secs() + 3600,
+        exp: current_time.as_secs() + duration,
         nbf: Option::from(current_time.as_secs()),
         iat: current_time.as_secs(),
         jti: uuid::Uuid::new_v4(),
@@ -48,11 +45,12 @@ pub fn new_jwt(subject: &str, audience: &str, role: &str) -> Result<String> {
     };
 }
 
-pub fn decode_jwt(jwt: &str) -> Result<Claims> {
+pub fn decode_jwt(jwt: &str, aud: Vec<String>) -> Result<Claims> {
 
     let mut validation = Validation::new(Algorithm::HS512);
+    validation.set_audience(&aud);
 
-    let token_data = decode::<Claims>(jwt, &DecodingKey::from_secret(JWT_SECRET), &Validation::new(Algorithm::HS512));
+    let token_data = decode::<Claims>(jwt, &DecodingKey::from_secret(JWT_SECRET), &validation);
     let claim = match token_data {
         Ok(claims) => {
             Ok(claims.claims)
@@ -79,7 +77,11 @@ mod tests {
 
     #[test]
     fn test_new_jwt_token() {
-        let token_result = match new_jwt("tripg", "test_api", "admin") {
+
+        let mut aud: Vec<String> = Vec::new();
+        aud.push(String::from("test_api"));
+
+        let token_result = match new_jwt("tripg", "test_api", aud, 3000) {
             Ok(token) => {
                 println!("{}", token);
             }
@@ -91,8 +93,14 @@ mod tests {
 
     #[test]
     fn test_decode_jwt_token() {
-        let token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0cmlwZyIsImF1ZCI6WyJ0ZXN0X2FwaSJdLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3MDA0ODA1MTEsIm5iZiI6MTcwMDQ3NjkxMSwiaWF0IjoxNzAwNDc2OTExLCJqdGkiOiIxOTc3MTYzYi02NGQ3LTQ3YzItODczNS04ZWM1MTViYTkzNjcifQ.heRfWgxGBI7wXIWKPM4I2DN4b5_d03q0fOKUXiXAyjRggVVF670kslMW1ufGobOL3214IlEhrY_VuvXL7NR_Aw";
-        let claims = match decode_jwt(&token) {
+        let token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0cmlwZyIsImF1ZCI6WyJ0ZXN0\
+        X2FwaSJdLCJyb2xlIjoidGVzdF9hcGkiLCJleHAiOjE3MDA1MzkyNjgsIm5iZiI6MTcwMDUzNjI2OCwiaWF0IjoxNzA\
+        wNTM2MjY4LCJqdGkiOiIzOTMwYjcwOS05YzBkLTRkOGMtODY1YS04ZWM5NTZlODlmMDYifQ.7r-7kEKQ466MC9Vmm4o\
+        IY1IvRZ2Ea6JxbVSk0m2KGuyiJ78sdyzOczTHnwZfq3Wg-JyVWo_7bQHjDVnplpVViQ";
+
+        let mut aud: Vec<String> = Vec::new();
+        aud.push(String::from("test_api"));
+        let claims = match decode_jwt(&token, aud) {
             Ok(cl) => {
                 println!("{:#?}", cl)
             }

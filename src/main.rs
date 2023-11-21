@@ -6,6 +6,7 @@ mod middleware;
 mod routes;
 mod response;
 mod constants;
+mod logging;
 
 use axum::{
     routing::{get, post},
@@ -15,6 +16,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
+use crate::handler::*;
 
 #[tokio::main]
 async fn main() {
@@ -24,9 +26,9 @@ async fn main() {
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
-        .route("/", get(root))
-        // `POST /users` goes to `create_user`
-        .route("/users", post(create_user));
+        .route("/", get(version_handler::get_version));
+        // // `POST /users` goes to `create_user`
+        // .route("/users", post(create_user));
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`

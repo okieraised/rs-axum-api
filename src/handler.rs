@@ -1,1 +1,1 @@
-mod handler;
+pub mod version_handler;
