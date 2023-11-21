@@ -17,33 +17,40 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use crate::handler::*;
+use log::{debug, error, info};
+use std::env;
+use ecs_logger::extra_fields;
+
+
 
 #[tokio::main]
 async fn main() {
+
+    env::set_var("RUST_LOG", "info");
     // initialize tracing
-    tracing_subscriber::fmt::init();
+    // tracing_subscriber::fmt::init();
+
+    ecs_logger::init();
+
+    // extra_fields::set_extra_fields(MyExtraFields {
+    //     my_field: "my_value".to_string(),
+    // }).unwrap();
 
     // build our application with a route
     let app = Router::new()
-        // `GET /` goes to `root`
         .route("/", get(version_handler::get_version));
         // // `POST /users` goes to `create_user`
         // .route("/users", post(create_user));
 
-    // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::debug!("listening on {}", addr);
+    // run our app with hyper `axum::Server` is a re-export of `hyper::Server`
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    info!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
 }
 
-// basic handler that responds with a static string
-async fn root() -> &'static str {
-    "fuck you\n"
-}
 
 async fn create_user(
     // this argument tells axum to parse the request body

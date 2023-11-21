@@ -28,12 +28,37 @@
 //! println!("{}", serde_json::to_string(&event).unwrap());
 //! ```
 
+use std::borrow::BorrowMut;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::path::Path;
+use crate::logging::extra_fields::merge_extra_fields;
+use crate::logging::timestamp;
 
 /// Represents Elastic Common Schema version.
 const ECS_VERSION: &str = "1.12.1";
+
+pub fn try_init() -> Result<(), log::SetLoggerError> {
+    env_logger::builder().format(format).try_init()
+}
+
+pub fn format(buf: &mut impl std::io::Write, record: &log::Record) -> std::io::Result<()> {
+    let event = Event::new(timestamp::get_timestamp(), record);
+
+    let event_json_value =
+        serde_json::to_value(event).expect("Event should be converted into JSON");
+    let event_json_map = match event_json_value {
+        serde_json::Value::Object(m) => m,
+        _ => unreachable!("Event should be converted into a JSON object"),
+    };
+
+    let merged_json_map = merge_extra_fields(event_json_map);
+
+    serde_json::to_writer(buf.borrow_mut(), &merged_json_map)?;
+    writeln!(buf)?;
+
+    Ok(())
+}
 
 /// Representation of an event compatible with ECS logging.
 ///
