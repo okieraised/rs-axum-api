@@ -7,6 +7,7 @@ mod routes;
 mod response;
 mod constants;
 mod logging;
+mod s3_client;
 
 use axum::{
     routing::{get, post},
@@ -25,10 +26,7 @@ use ecs_logger::extra_fields;
 
 #[tokio::main]
 async fn main() {
-
     env::set_var("RUST_LOG", "info");
-    // initialize tracing
-    // tracing_subscriber::fmt::init();
 
     ecs_logger::init();
 
