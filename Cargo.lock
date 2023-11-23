@@ -126,6 +126,7 @@ dependencies = [
  "hyper 1.0.1",
  "jsonwebtoken",
  "log",
+ "once_cell",
  "reqwest",
  "serde",
  "serde_json",
